@@ -1,0 +1,19 @@
+# Core deep learning
+torch==2.4.1
+torch-geometric==2.5.3
+
+# These are handled automatically by torch-geometric for CPU install
+# (do NOT pin pyg-lib / torch-scatter / etc manually — PyG handles compatible versions)
+
+# Data handling
+pandas==2.2.2
+pyarrow==17.0.0
+numpy==1.26.4
+
+# Utils and metrics
+tqdm==4.66.4
+scikit-learn==1.5.2
+
+# Optional — visualization, debugging, notebooks
+matplotlib==3.9.2
+notebook==7.2.1
