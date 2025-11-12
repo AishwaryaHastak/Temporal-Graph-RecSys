@@ -2,19 +2,20 @@
 import pandas as pd
 from pathlib import Path
 from datetime import timedelta
+import random
 
 DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
 
-def load_yoochoose_clicks(path: str):
+def load_yoochoose_clicks(path: str, sample_size: int = 200_000, seed: int = 42):
     print(" Loading YooChoose click dataset ...")
     cols = ['session_id', 'timestamp', 'item_id', 'category']
     df = pd.read_csv(path, header=None, names=cols,nrows=100_000, parse_dates=[1], low_memory=False)
     print(f" Loaded {len(df):,} events, {df['session_id'].nunique():,} sessions, {df['item_id'].nunique():,} items")
     return df
 
-def filter_and_build_sessions(df, min_session_len=2, max_sessions=50_000):
-    print(f"\n Filtering sessions (min_len={min_session_len}, max_sessions={max_sessions}) ...")
+def filter_and_build_sessions(df, min_session_len=2):
+    print(f"\n Filtering sessions (min_len={min_session_len}) ...")
     session_lens = df.groupby('session_id').size()
     good_sessions = session_lens[session_lens >= min_session_len].index
 
@@ -22,12 +23,6 @@ def filter_and_build_sessions(df, min_session_len=2, max_sessions=50_000):
     df = df[df['session_id'].isin(good_sessions)]
     after = df['session_id'].nunique()
     print(f"• removed short sessions: {before - after:,} | kept: {after:,}")
-
-    sessions_sorted = df.groupby('session_id')['timestamp'].max().sort_values(ascending=False)
-    keep = sessions_sorted.index[:max_sessions]
-    df = df[df['session_id'].isin(keep)]
-    print(f"• limited to {df['session_id'].nunique():,} most recent sessions")
-
     print(f" Final dataset: {len(df):,} events")
     return df
 
@@ -63,7 +58,7 @@ if __name__ == "__main__":
     print("\n Starting YooChoose preprocessing\n" + "-"*50)
 
     df = load_yoochoose_clicks("data/yoochoose-clicks.dat")
-    df = filter_and_build_sessions(df, max_sessions=10_000)
+    df = filter_and_build_sessions(df)
 
     train, test = make_train_test(df, test_last_days=1)
     pop = compute_item_popularity(train, window_days=7)
